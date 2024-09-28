@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "935617733326",
+    "project_id": "dailyplanner-5afe2",
+    "storage_bucket": "dailyplanner-5afe2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:935617733326:android:deaed02d70e9894743e69f",
+        "android_client_info": {
+          "package_name": "com.example.dailyplanner"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDZoReDswE24h1qLln7L6Z8g_X9fLjBJXU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
