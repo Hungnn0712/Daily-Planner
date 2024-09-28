@@ -238,15 +238,24 @@ class _LoginScreenState extends State<Loginscreen> {
                             ),
                           ),
                         ),
-                        SizedBox(height: 40),
+                        SizedBox(height: 10),
                         FadeInUp(
                           duration: Duration(milliseconds: 1500),
-                          child: Text(
-                            "Forgot Password?",
-                            style: TextStyle(color: Colors.grey),
+                          child: MaterialButton(
+                            onPressed: () {
+                              // Nếu Registerscreen là một widget, bạn cần sử dụng Navigator để điều hướng
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => Registerscreen()),
+                              );
+                            },
+                            child: Text(
+                              "Đăng ký ngay?",
+                              style: TextStyle(color: Colors.grey),
+                            ),
                           ),
                         ),
-                        SizedBox(height: 40),
+                        SizedBox(height: 10),
                         FadeInUp(
                           duration: Duration(milliseconds: 1600),
                           child: MaterialButton(

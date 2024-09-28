@@ -16,18 +16,16 @@ class _TaskListScreen extends State<Tasklistscreen> {
   List<Task> tasks = []; // Danh sách công việc
 
   // Hàm để tải danh sách công việc từ Firebase
-  void _loadTasks() async {
-    try {
-      final snapshot = await _databaseReference.once();
+  void _loadTasks() {
+    _databaseReference.onValue.listen((DatabaseEvent event) {
+      final data = event.snapshot.value;
 
       // Kiểm tra xem dữ liệu có tồn tại không
-      if (snapshot.snapshot.exists) {
-        final data = snapshot.snapshot.value;
-
+      if (data != null) {
         // Kiểm tra xem dữ liệu có phải là Map không
         if (data is Map) {
           setState(() {
-            tasks = [];
+            tasks = []; // Xóa danh sách cũ
             data.forEach((key, value) {
               if (value is Map) {
                 final taskMap = Map<String, dynamic>.from(value);
@@ -39,7 +37,7 @@ class _TaskListScreen extends State<Tasklistscreen> {
           });
         } else if (data is List) {
           setState(() {
-            tasks = [];
+            tasks = []; // Xóa danh sách cũ
             for (var item in data) {
               if (item is Map) {
                 final taskMap = Map<String, dynamic>.from(item);
@@ -52,19 +50,20 @@ class _TaskListScreen extends State<Tasklistscreen> {
         } else {
           print('Dữ liệu không phải là Map hay List: $data');
           setState(() {
-            tasks = [];
+            tasks = []; // Xóa danh sách cũ
           });
         }
       } else {
         print('Không có dữ liệu nào trong snapshot.');
         setState(() {
-          tasks = [];
+          tasks = []; // Xóa danh sách cũ
         });
       }
-    } catch (e) {
-      print('Lỗi khi tải nhiệm vụ: $e');
-    }
+    }, onError: (error) {
+      print('Lỗi khi lắng nghe dữ liệu: $error');
+    });
   }
+
 
   // Hàm để xóa công việc
   void deleteTask(int index) async {
@@ -129,23 +128,24 @@ class _TaskListScreen extends State<Tasklistscreen> {
       body: Column(
         children: [
           Expanded(
-            flex: 6,
+            flex: 10,
             child: Container(
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey, width: 1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(3),
               ),
               child: CalendarScreen(tasks: tasks,),
             ),
           ),
           SizedBox(height: 10),
           Expanded(
-            flex: 5,
+            flex: 7,
             child: ListView.builder(
               itemCount: tasks.length,
               itemBuilder: (context, index) {
                 return Card(
-                  elevation: 4,
+                  key: ValueKey(tasks[index].taskKey), // Thêm key cho mỗi mục
+                  elevation: 1,
                   margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   color: isDarkMode ? Colors.grey[850] : Colors.white, // Màu nền của card
                   child: ListTile(
@@ -184,7 +184,7 @@ class _TaskListScreen extends State<Tasklistscreen> {
                           padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                           decoration: BoxDecoration(
                             color: _getStatusColor(tasks[index].status),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(3),
                           ),
                           child: Text(
                             'Trạng thái: ${tasks[index].status}',
@@ -217,6 +217,7 @@ class _TaskListScreen extends State<Tasklistscreen> {
               },
             ),
           ),
+
         ],
       ),
     );

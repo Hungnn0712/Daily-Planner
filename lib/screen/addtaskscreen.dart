@@ -19,38 +19,29 @@ class _AddtaskscreenState extends State<Addtaskscreen> {
   final TextEditingController locationController = TextEditingController();
   final TextEditingController noteController = TextEditingController();
   final TextEditingController hostController = TextEditingController();
-  String selectedDay = 'Thứ 2';
   DateTime selectedDate = DateTime.now();
   TimeOfDay selectedStartTime = TimeOfDay.now();
   TimeOfDay selectedEndTime = TimeOfDay.now();
   String selectedStatus = 'Tạo mới';
   String selectedReviewer = 'Thanh Ngân';
 
-  List<String> daysOfWeek = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
   List<String> statuses = ['Tạo mới', 'Thực hiện', 'Thành công', 'Kết thúc'];
   List<String> reviewers = ['Thanh Ngân', 'Hữu Nghĩa'];
 
   final DatabaseReference databaseRef = FirebaseDatabase.instance.ref().child('tasks');
   Future<int> _getNextTaskKey() async {
-    DataSnapshot snapshot = await databaseRef.get();
+    DataSnapshot snapshot = await databaseRef.parent!.child('lastTaskKey').get();
+
     if (snapshot.exists) {
-      // Kiểm tra kiểu dữ liệu và xử lý nếu không phải là Map
-      if (snapshot.value is Map) {
-        Map<dynamic, dynamic> tasks = snapshot.value as Map<dynamic, dynamic>;
-        List<int> keys = tasks.keys.map((key) => int.tryParse(key) ?? 0).toList();
-        keys.sort(); // Sắp xếp các key để lấy giá trị lớn nhất
-        return keys.isNotEmpty ? keys.last + 1 : 1; // Cộng thêm 1 vào key lớn nhất
-      } else if (snapshot.value is List) {
-        // Nếu dữ liệu là List
-        List<dynamic> tasks = snapshot.value as List<dynamic>;
-        return tasks.length + 1; // Trả về số thứ tự mới dựa trên độ dài của List
-      } else {
-        // Dữ liệu không hợp lệ
-        throw Exception('Dữ liệu không hợp lệ: Không phải là Map hoặc List');
-      }
+      int lastKey = snapshot.value as int;
+      await databaseRef.parent!.child('lastTaskKey').set(lastKey + 1); // Cập nhật khóa cuối cùng
+      return lastKey + 1; // Trả về khóa tiếp theo
     }
+
+    await databaseRef.parent!.child('lastTaskKey').set(1); // Khởi tạo nếu không tồn tại
     return 1; // Nếu không có task nào, bắt đầu từ 1
   }
+
 
   // Hàm lưu công việc mới lên Firebase
   Future<void> _addTask() async {
@@ -73,6 +64,7 @@ class _AddtaskscreenState extends State<Addtaskscreen> {
         reviewer: selectedReviewer,
         notes: noteController.text,
         status: selectedStatus,
+        order: newTaskKey,
       );
 
       if (widget.task != null) {
@@ -195,22 +187,6 @@ class _AddtaskscreenState extends State<Addtaskscreen> {
         child: ListView(
           children: [
             // Ngày
-            DropdownButtonFormField(
-              value: selectedDay,
-              items: daysOfWeek.map((String day) {
-                return DropdownMenuItem(
-                  value: day,
-                  child: Text(day),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  selectedDay = newValue!;
-                });
-              },
-              decoration: InputDecoration(labelText: 'Thứ ngày'),
-            ),
-            SizedBox(height: 10),
 
             // Nội dung công việc
             TextField(
@@ -297,10 +273,11 @@ class _AddtaskscreenState extends State<Addtaskscreen> {
 
             // Nút thêm công việc
             ElevatedButton(
-              onPressed:(){
-                _addTask();
+              onPressed: () async {
+                await _addTask(); // Gọi hàm thêm hoặc cập nhật công việc
+                Navigator.pop(context); // Quay lại trang task list sau khi thêm/cập nhật thành công
               },
-              child: Text('Thêm công việc'),
+              child: Text(widget.task != null ? 'Cập nhật Công việc' : 'Thêm Công việc mới'),
             ),
           ],
         ),
