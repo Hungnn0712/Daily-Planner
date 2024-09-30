@@ -1,8 +1,7 @@
+
 import 'package:dailyplanner/mainpage.dart';
-import 'package:dailyplanner/screen/addtaskscreen.dart';
 import 'package:dailyplanner/screen/loginscreen.dart';
 import 'package:dailyplanner/screen/tasklistscreen.dart';
-import 'package:dailyplanner/screen/welcomescreen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -35,7 +34,7 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           theme: themeProvider.themeData,
           debugShowCheckedModeBanner: false,
-          home: Loginscreen(),
+          home: MainPage(),
         );
       },
     );

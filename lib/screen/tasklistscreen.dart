@@ -34,6 +34,7 @@ class _TaskListScreen extends State<Tasklistscreen> {
                 print('Giá trị không phải là Map: $value');
               }
             });
+            tasks.sort((a, b) => a.position.compareTo(b.position));
           });
         } else if (data is List) {
           setState(() {
@@ -46,6 +47,7 @@ class _TaskListScreen extends State<Tasklistscreen> {
                 print('Giá trị không phải là Map: $item');
               }
             }
+            tasks.sort((a, b) => a.position.compareTo(b.position));
           });
         } else {
           print('Dữ liệu không phải là Map hay List: $data');
@@ -102,6 +104,31 @@ class _TaskListScreen extends State<Tasklistscreen> {
     super.initState();
     _loadTasks(); // Tải danh sách công việc khi khởi tạo
   }
+  void reorderTasks(int oldIndex, int newIndex) {
+    setState(() {
+      if (oldIndex < newIndex) {
+        newIndex -= 1;
+      }
+      final task = tasks.removeAt(oldIndex);
+      tasks.insert(newIndex, task);
+
+      // Cập nhật vị trí trong Firebase
+      reorderTasksInFirebase();
+    });
+  }
+  void reorderTasksInFirebase() {
+    // Lặp qua danh sách tasks và cập nhật vị trí mới của từng task lên Firebase
+    for (int index = 0; index < tasks.length; index++) {
+      final task = tasks[index];
+      // Cập nhật vị trí mới lên Firebase
+      FirebaseDatabase.instance
+          .ref()
+          .child('tasks/${task.taskKey}') // taskKey là id của task trong Firebase
+          .update({
+        'position': index, // Cập nhật vị trí mới
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -128,95 +155,130 @@ class _TaskListScreen extends State<Tasklistscreen> {
       body: Column(
         children: [
           Expanded(
-            flex: 10,
+            flex: 8,
             child: Container(
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey, width: 1),
-                borderRadius: BorderRadius.circular(3),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(0), // Bo tròn góc dưới bên trái
+                  bottomRight: Radius.circular(0), // Bo tròn góc dưới bên phải
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1), // Màu bóng
+                    offset: Offset(2, 2), // Vị trí của bóng
+                    blurRadius: 8, // Độ mờ của bóng
+                    spreadRadius: 2, // Kích thước bóng
+                  ),
+                ],
               ),
               child: CalendarScreen(tasks: tasks,),
             ),
           ),
-          SizedBox(height: 10),
           Expanded(
-            flex: 7,
-            child: ListView.builder(
-              itemCount: tasks.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  key: ValueKey(tasks[index].taskKey), // Thêm key cho mỗi mục
-                  elevation: 1,
-                  margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                  color: isDarkMode ? Colors.grey[850] : Colors.white, // Màu nền của card
-                  child: ListTile(
-                    title: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          tasks[index].taskName,
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: textColor, // Màu chữ
-                          ),
-                        ),
-                        Text(
-                          'Chủ trì: ${tasks[index].host}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: textColor, // Màu chữ
-                          ),
+            flex: 6,
+            child: ReorderableListView(
+              padding: const EdgeInsets.all(10),
+              children: [
+                for (int index = 0; index < tasks.length; index++)
+                  Container(
+                    key: ValueKey(tasks[index].taskKey),
+                    decoration: BoxDecoration(
+                      color: isDarkMode ? Colors.grey[850] : Colors.white,
+                      borderRadius: BorderRadius.circular(8), // Bo tròn góc
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1), // Màu bóng
+                          offset: Offset(0, 0), // Bóng đổ về góc dưới phải
+                          blurRadius: 10, // Độ mờ của bóng
+                          spreadRadius: 6, // Bán kính của bóng
                         ),
                       ],
                     ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Ngày: ${tasks[index].date}, Giờ: ${tasks[index].startTime}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: textColor, // Màu chữ
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Container(
-                          padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                          decoration: BoxDecoration(
-                            color: _getStatusColor(tasks[index].status),
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                          child: Text(
-                            'Trạng thái: ${tasks[index].status}',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
+                    margin: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                    child: Card(
+                      elevation: 0, // Đặt bằng 0 để không dùng đổ bóng mặc định của Card
+                      color: Colors.transparent, // Để màu nền của Container hiển thị
+                      // shape: RoundedRectangleBorder(
+                      //   side: BorderSide(
+                      //     color: isDarkMode ? Colors.white : Colors.black, // Màu khung (viền)
+                      //     width: 0, // Độ dày khung
+                      //   ),
+                      //   borderRadius: BorderRadius.circular(8), // Bo tròn góc
+                      // ),
+                      child: ListTile(
+                        title: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              tasks[index].taskName,
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: textColor, // Màu chữ
+                              ),
                             ),
-                          ),
+                            Text(
+                              'Chủ trì: ${tasks[index].host}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: textColor, // Màu chữ
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => Addtaskscreen(task: tasks[index]),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Ngày: ${tasks[index].date}, Giờ: ${tasks[index].startTime}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: textColor, // Màu chữ
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Container(
+                              padding: EdgeInsets.symmetric(vertical: 0, horizontal: 4),
+                              decoration: BoxDecoration(
+                                color: _getStatusColor(tasks[index].status),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                'Trạng thái: ${tasks[index].status}',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ).then((value) {
-                        _loadTasks();
-                      });
-                    },
-                    trailing: IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        deleteTask(index);
-                      },
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Addtaskscreen(task: tasks[index]),
+                            ),
+                          ).then((value) {
+                            _loadTasks();
+                          });
+                        },
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            deleteTask(index);
+                          },
+                        ),
+                      ),
                     ),
                   ),
-                );
+              ],
+              onReorder: (oldIndex, newIndex) {
+                reorderTasks(oldIndex, newIndex);
               },
             ),
-          ),
+          )
 
         ],
       ),

@@ -12,44 +12,44 @@ class TaskStatistics {
   final DatabaseReference _tasksRef = FirebaseDatabase.instance.ref().child('tasks');
 
   // Lắng nghe thay đổi từ Firebase và cập nhật theo thời gian thực
-  void listenToTaskStatistics(Function(Map<String, int>) onUpdate) {
-    _tasksRef.onValue.listen((event) {
-      Map<String, int> counts = {
-        'Thành công': 0,
-        'Thực hiện': 0,
-        'Tạo mới': 0,
-        'Kết thúc': 0,
-      };
+    void listenToTaskStatistics(Function(Map<String, int>) onUpdate) {
+      _tasksRef.onValue.listen((event) {
+        Map<String, int> counts = {
+          'Thành công': 0,
+          'Thực hiện': 0,
+          'Tạo mới': 0,
+          'Kết thúc': 0,
+        };
 
-      DataSnapshot snapshot = event.snapshot;
-      if (snapshot.exists) {
-        if (snapshot.value is List) {
-          print("Dữ liệu là list");
-          List<dynamic> tasksList = snapshot.value as List<dynamic>;
-          for (var item in tasksList) {
-            if (item != null) {
-              Task task = Task.fromMap(Map<String, dynamic>.from(item));
+        DataSnapshot snapshot = event.snapshot;
+        if (snapshot.exists) {
+          if (snapshot.value is List) {
+            print("Dữ liệu là list");
+            List<dynamic> tasksList = snapshot.value as List<dynamic>;
+            for (var item in tasksList) {
+              if (item != null) {
+                Task task = Task.fromMap(Map<String, dynamic>.from(item));
+                if (counts.containsKey(task.status)) {
+                  counts[task.status] = counts[task.status]! + 1;
+                }
+              }
+            }
+          } else if (snapshot.value is Map) {
+            Map<dynamic, dynamic> data = snapshot.value as Map<dynamic, dynamic>;
+            data.forEach((key, value) {
+              Task task = Task.fromMap(Map<String, dynamic>.from(value));
               if (counts.containsKey(task.status)) {
                 counts[task.status] = counts[task.status]! + 1;
               }
-            }
+            });
           }
-        } else if (snapshot.value is Map) {
-          Map<dynamic, dynamic> data = snapshot.value as Map<dynamic, dynamic>;
-          data.forEach((key, value) {
-            Task task = Task.fromMap(Map<String, dynamic>.from(value));
-            if (counts.containsKey(task.status)) {
-              counts[task.status] = counts[task.status]! + 1;
-            }
-          });
         }
-      }
 
-      // Gọi hàm callback để cập nhật dữ liệu
-      onUpdate(counts);
-    });
+        // Gọi hàm callback để cập nhật dữ liệu
+        onUpdate(counts);
+      });
+    }
   }
-}
 
 class _TaskStatisticsScreenState extends State<TaskStatisticsScreen> {
   Map<String, int> taskCounts = {

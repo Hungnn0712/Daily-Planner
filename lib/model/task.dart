@@ -11,7 +11,7 @@ class Task {
   String reviewer;
   String notes;
   String status;
-  int order; // Thêm trường order để lưu trữ thứ tự công việc
+  int position; // Thay trường order thành position để lưu trữ thứ tự công việc
 
   Task({
     required this.taskKey,
@@ -24,7 +24,7 @@ class Task {
     required this.reviewer,
     required this.notes,
     required this.status,
-    required this.order, // Khởi tạo trường order
+    required this.position, // Khởi tạo trường position
   });
 
   // Chuyển đổi Task thành JSON để lưu trữ lên Firebase
@@ -40,7 +40,7 @@ class Task {
       'reviewer': reviewer,
       'notes': notes,
       'status': status,
-      'order': order, // Thêm trường order vào JSON
+      'position': position, // Thêm trường position vào JSON
     };
   }
 
@@ -57,7 +57,7 @@ class Task {
       reviewer: json['reviewer'] ?? '',
       notes: json['notes'] ?? '',
       status: json['status'] ?? '',
-      order: json['order'] ?? 0, // Khôi phục order từ JSON
+      position: json['position'] ?? 0, // Khôi phục position từ JSON
     );
   }
 
@@ -74,7 +74,7 @@ class Task {
       reviewer: map['reviewer'] ?? '', // Khôi phục người đánh giá
       notes: map['notes'] ?? '', // Khôi phục ghi chú
       status: map['status'] ?? 'new', // Giá trị mặc định cho status
-      order: map['order'] ?? 0, // Khôi phục order từ Map
+      position: map['position'] ?? 0, // Khôi phục position từ Map
     );
   }
 }

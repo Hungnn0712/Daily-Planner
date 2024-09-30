@@ -120,18 +120,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
           ),
           const SizedBox(height: 8.0),
+          if (selectedDayEvents.isNotEmpty)
           Expanded(
             child: Container(decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(1), // Bo tròn các góc
               border: Border( // Khung ngoài
                 top: BorderSide( // Khung chỉ ở phía trên
                   color: isDarkMode ? Colors.white : Colors.black, // Màu của khung
-                  width: 1, // Độ dày của khung
+                  width: 0.1, // Độ dày của khung
                 ),
-                bottom: BorderSide(
-                  color: isDarkMode ? Colors.white : Colors.black, // Màu của khung
-                  width: 1,
-                )
               ),
             ),
               child: ListView.builder(
@@ -142,14 +139,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     padding: EdgeInsets.fromLTRB(10,0,0,0), // Khoảng cách giữa các item
                     child: Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: isDarkMode ? Colors.black.withOpacity(0.01) : Colors.white, // Bạn có thể thay đổi màu nền của item
+                        borderRadius: BorderRadius.circular(0),
+                        color: isDarkMode ? Colors.black.withOpacity(0.1) : Colors.white, // Bạn có thể thay đổi màu nền của item
                       ),
                       child: Padding(
-                        padding: EdgeInsets.all(10), // Khoảng cách bên trong container
+                        padding: EdgeInsets.all(11), // Khoảng cách bên trong container
                         child: Text(
                           selectedDayEvents[index],
-                          style: TextStyle(fontSize: 18, color: isDarkMode ? Colors.white : Colors.black), // Thay đổi kiểu chữ và màu chữ
+                          style: TextStyle(fontSize: 20, color: isDarkMode ? Colors.white : Colors.black), // Thay đổi kiểu chữ và màu chữ
                         ),
                       ),
                     ),

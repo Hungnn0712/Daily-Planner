@@ -50,8 +50,11 @@ class _AddtaskscreenState extends State<Addtaskscreen> {
     try {
       int newTaskKey = widget.task?.taskKey != null
           ? int.parse(widget.task!.taskKey)
-          : await
-      _getNextTaskKey(); // Lấy taskKey tiếp theo
+          : await _getNextTaskKey(); // Lấy taskKey tiếp theo
+      DatabaseEvent event = await databaseRef.once();
+      DataSnapshot snapshot = event.snapshot; // Lấy DataSnapshot từ DatabaseEvent
+      int position = (snapshot.value as Map<dynamic, dynamic>?)?.length ?? 0;
+      position += 1; // Position sẽ bằng số lượng nhiệm vụ hiện tại + 1
 
       Task newTask = Task(
         taskKey: newTaskKey.toString(),
@@ -64,7 +67,7 @@ class _AddtaskscreenState extends State<Addtaskscreen> {
         reviewer: selectedReviewer,
         notes: noteController.text,
         status: selectedStatus,
-        order: newTaskKey,
+        position: position,
       );
 
       if (widget.task != null) {
